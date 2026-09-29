@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gridlock — Tic-Tac-Toe</title>
+  <link rel="stylesheet" href="./src/styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <div class="eyebrow">Two-player arcade</div>
+        <h1>Gridlock</h1>
+        <p class="tagline">Three in a row. One perfect move.</p>
+      </div>
+      <button class="new-game" id="reset" type="button">New game ↻</button>
+    </header>
+    <section class="panel" aria-label="Tic-Tac-Toe game">
+      <div class="mode-switch" aria-label="Choose game mode">
+        <span class="mode-label">Game mode</span>
+        <div class="mode-options">
+          <button class="mode-btn active" data-mode="ai" type="button" aria-pressed="true">Play with AI</button>
+          <button class="mode-btn" data-mode="human" type="button" aria-pressed="false">Play with Human</button>
+        </div>
+      </div>
+      <div class="scoreboard">
+        <div class="score x active" id="xScore"><span class="label">YOU • X</span><span class="value">0</span></div>
+        <div class="score draw" id="drawScore"><span class="label">DRAWS</span><span class="value">0</span></div>
+        <div class="score o" id="oScore"><span class="label">AI • O</span><span class="value">0</span></div>
+      </div>
+      <p class="status" id="status" aria-live="polite">Your turn — place X</p>
+      <div class="board" id="board" role="grid" aria-label="Tic-Tac-Toe board"></div>
+      <p class="hint" id="hint">You are X • the AI is O</p>
+    </section>
+  </main>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
