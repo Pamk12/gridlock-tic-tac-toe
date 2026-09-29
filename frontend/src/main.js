@@ -1,19 +1,10 @@
+import { getWinningLine } from '../../shared/gameRules.js';
+
 const boardElement = document.querySelector('#board');
 const statusElement = document.querySelector('#status');
 const hintElement = document.querySelector('#hint');
 const resetButton = document.querySelector('#reset');
 const modeButtons = [...document.querySelectorAll('.mode-btn')];
-
-const WINNING_LINES = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
 
 const scores = { X: 0, O: 0, draws: 0 };
 
@@ -98,68 +89,34 @@ function scheduleComputerMove() {
   computerThinking = true;
   render();
 
-  window.setTimeout(() => {
+  window.setTimeout(async () => {
     if (scheduledRound !== roundId || gameOver) return;
 
-    computerThinking = false;
-    handleMove(findBestMove(), 'computer');
-  }, 420);
-}
+    try {
+      const response = await fetch('/api/ai/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ board }),
+      });
 
-function findBestMove() {
-  let highestScore = Number.NEGATIVE_INFINITY;
-  let bestMoves = [];
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || 'The AI service could not choose a move.');
+      }
 
-  board.forEach((value, index) => {
-    if (value) return;
+      const { index } = await response.json();
+      if (!Number.isInteger(index) || board[index]) {
+        throw new Error('The AI service returned an invalid move.');
+      }
 
-    const nextBoard = [...board];
-    nextBoard[index] = 'O';
-    const score = minimax(nextBoard, 'X', 0);
-
-    if (score > highestScore) {
-      highestScore = score;
-      bestMoves = [index];
-    } else if (score === highestScore) {
-      bestMoves.push(index);
+      computerThinking = false;
+      handleMove(index, 'computer');
+    } catch (error) {
+      computerThinking = false;
+      statusElement.textContent = `AI unavailable: ${error.message}`;
+      render();
     }
-  });
-
-  return bestMoves[Math.floor(Math.random() * bestMoves.length)];
-}
-
-function minimax(position, player, depth) {
-  const result = getWinner(position);
-
-  if (result === 'O') return 10 - depth;
-  if (result === 'X') return depth - 10;
-  if (result === 'draw') return 0;
-
-  const possibleScores = [];
-
-  position.forEach((value, index) => {
-    if (value) return;
-
-    const nextPosition = [...position];
-    nextPosition[index] = player;
-    possibleScores.push(minimax(nextPosition, player === 'O' ? 'X' : 'O', depth + 1));
-  });
-
-  return player === 'O' ? Math.max(...possibleScores) : Math.min(...possibleScores);
-}
-
-function getWinner(position) {
-  const winningLine = WINNING_LINES.find(([first, second, third]) => (
-    position[first] && position[first] === position[second] && position[first] === position[third]
-  ));
-
-  if (winningLine) return position[winningLine[0]];
-  if (position.every(Boolean)) return 'draw';
-  return null;
-}
-
-function getWinningLine(position, player) {
-  return WINNING_LINES.find((line) => line.every((index) => position[index] === player));
+  }, 420);
 }
 
 function setMode(nextMode) {
